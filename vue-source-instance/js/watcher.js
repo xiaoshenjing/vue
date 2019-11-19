@@ -7,23 +7,29 @@
  */
 class Watcher {
     constructor(vm, expOrFn, cb) {
-        this.cb = cb
-        this.vm = vm
-        this.expOrFn = expOrFn
-        this.depIds = {}
-        this.getter = typeof expOrFn === 'function' ? expOrFn : this.parseGetter(expOrFn.trim())
+        this.cb = cb;
+        this.vm = vm;
+        this.expOrFn = expOrFn;
+        this.depIds = {};
+
+        if (typeof expOrFn === 'function') {
+            this.getter = expOrFn;
+        } else {
+            this.getter = this.parseGetter(expOrFn.trim());
+        }
+
         // 此处为了触发属性的 getter，从而在 dep 添加自己，结合 Observer 更易理解
-        this.value = this.get()
+        this.value = this.get();
     }
     update() {
-        this.run()
+        this.run();
     }
     run() {
-        const value = this.get() // 收到最新值
-        const oldVal = this.value
+        var value = this.get(); // 收到最新值
+        var oldVal = this.value;
         if (value !== oldVal) {
-            this.value = value
-            this.cb.call(this.vm, value, oldVal) // 执行 Compile 中绑定的回调，更新视图
+            this.value = value;
+            this.cb.call(this.vm, value, oldVal);
         }
     }
     addDep(dep) {
@@ -47,16 +53,19 @@ class Watcher {
         }
     }
     get() {
-        Dep.target = this // 将当前订阅者指向自己
-        const value = this.getter.call(this.vm, this.vm) // 触发 getter，添加自己到属性订阅器中
+        Dep.target = this; // 将当前订阅者指向自己
+        var value = this.getter.call(this.vm, this.vm);
         Dep.target = null; // 添加完毕，重置
         return value;
     }
+
     parseGetter(exp) {
         if (/[^\w.$]/.test(exp)) return;
-        const exps = exp.split('.');
-        return (obj) => {
-            for (let i = 0, len = exps.length; i < len; i++) {
+
+        var exps = exp.split('.');
+
+        return function (obj) {
+            for (var i = 0, len = exps.length; i < len; i++) {
                 if (!obj) return;
                 obj = obj[exps[i]];
             }

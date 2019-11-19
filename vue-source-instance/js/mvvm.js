@@ -6,41 +6,52 @@
  */
 class MVVM {
     constructor(options) {
-        this.$options = options || {}
-        const data = this._data = this.$options.data
+        this.$options = options || {};
+        var data = this._data = this.$options.data;
+        var me = this;
         // 属性代理，实现 vm.xxx -> vm._data.xxx
-        Object.keys(data).forEach(key => {
-            this._proxy(key)
-        })
-        this._initComputed()
-        observe(data, this)
+        Object.keys(data).forEach(function (key) {
+            me._proxyData(key);
+        });
+
+        this._initComputed();
+
+        observe(data, this);
+
         this.$compile = new Compile(options.el || document.body, this)
     }
+    
     $watch(key, cb, options) {
-        new Watcher(this, key, cb)
+        new Watcher(this, key, cb);
     }
-    _proxy(key, setter, getter) {
+
+    _proxyData(key, setter, getter) {
+        var me = this;
         setter = setter ||
-            Object.defineProperty(this, key, {
+            Object.defineProperty(me, key, {
                 configurable: false,
                 enumerable: true,
-                get proxyGetter() {
-                    return this._data[key];
+                get: function proxyGetter() {
+                    return me._data[key];
                 },
-                set proxySetter(newVal) {
-                    this._data[key] = newVal;
+                set: function proxySetter(newVal) {
+                    me._data[key] = newVal;
                 }
             });
     }
+
     _initComputed() {
-        const computed = this.$options.computed
+        var me = this;
+        var computed = this.$options.computed;
         if (typeof computed === 'object') {
-            Object.keys(computed).forEach(key => {
-                Object.defineProperty(this, key, {
-                    get: typeof computed[key] === 'function' ? computed[key] : computed[key].get,
-                    set: () => { }
-                })
-            })
+            Object.keys(computed).forEach(function (key) {
+                Object.defineProperty(me, key, {
+                    get: typeof computed[key] === 'function'
+                        ? computed[key]
+                        : computed[key].get,
+                    set: function () { }
+                });
+            });
         }
     }
 }

@@ -1,19 +1,23 @@
-const compileUtil = { // 指令处理集合
+// 指令处理集合
+const compileUtil = {
     text(node, vm, exp) {
-        this.bind(node, vm, exp, 'text')
+        this.bind(node, vm, exp, 'text');
     },
+
     html(node, vm, exp) {
         this.bind(node, vm, exp, 'html');
     },
+
     model(node, vm, exp) {
         this.bind(node, vm, exp, 'model');
-        let val = this._getVMVal(vm, exp);
+        var val = this._getVMVal(vm, exp);
+        var self = this
 
-        node.addEventListener('input', (e) => {
-            const newValue = e.target.value;
+        node.addEventListener('input', function (e) {
+            var newValue = e.target.value;
             if (val === newValue) return;
 
-            this._setVMVal(vm, exp, newValue);
+            self._setVMVal(vm, exp, newValue);
             val = newValue;
         });
     },
@@ -21,65 +25,73 @@ const compileUtil = { // 指令处理集合
     class(node, vm, exp) {
         this.bind(node, vm, exp, 'class');
     },
+
     bind(node, vm, exp, dir) {
-        const updaterFn = updater[dir + 'Updater']
+        var updaterFn = updater[dir + 'Updater'];
         // 第一次初始化视图
-        updaterFn && updaterFn(node, this._getVMVal(vm, exp))
+        updaterFn && updaterFn(node, this._getVMVal(vm, exp));
         // 实例化订阅者，此操作会在对应的属性消息订阅器中添加了该订阅者 watcher
-        new Watcher(vm, exp, (value, oldValue) => {
+        new Watcher(vm, exp, function (value, oldValue) {
             // 一旦属性值有变化，会收到通知执行此更新函数，更新视图
-            updaterFn && updaterFn(node, value, oldValue)
-        })
+            updaterFn && updaterFn(node, value, oldValue);
+        });
     },
+
     // 事件处理
     eventHandler(node, vm, exp, dir) {
-        const [eventType, fn] = [dir.split(':')[1], vm.$options.methods && vm.$options.methods[exp]]
+        var eventType = dir.split(':')[1],
+            fn = vm.$options.methods && vm.$options.methods[exp];
 
         if (eventType && fn) {
             node.addEventListener(eventType, fn.bind(vm), false);
         }
     },
+
     _getVMVal(vm, exp) {
-        let val = vm;
+        var val = vm;
         exp = exp.split('.');
-        exp.forEach((k) => {
+        exp.forEach(function (k) {
             val = val[k];
         });
         return val;
     },
+
     _setVMVal(vm, exp, value) {
-        let val = vm;
+        var val = vm;
         exp = exp.split('.');
-        exp.forEach((k, i) => {
+        exp.forEach(function (k, i) {
             // 非最后一个key，更新val的值
             if (i < exp.length - 1) {
-                val = val[k]
+                val = val[k];
             } else {
-                val[k] = value
+                val[k] = value;
             }
         });
     }
-}
+};
 
 const updater = { // 更新函数
     textUpdater(node, value) {
-        node.textContent = typeof value == 'undefined' ? '' : value
+        node.textContent = typeof value == 'undefined' ? '' : value;
     },
+
     htmlUpdater(node, value) {
         node.innerHTML = typeof value == 'undefined' ? '' : value;
     },
+
     classUpdater(node, value, oldValue) {
-        let className = node.className;
+        var className = node.className;
         className = className.replace(oldValue, '').replace(/\s$/, '');
 
-        let space = className && String(value) ? ' ' : '';
+        var space = className && String(value) ? ' ' : '';
 
         node.className = className + space + value;
     },
+
     modelUpdater(node, value, oldValue) {
         node.value = typeof value == 'undefined' ? '' : value;
     }
-}
+};
 
 /**
  * 实现Compile
@@ -88,75 +100,92 @@ const updater = { // 更新函数
  */
 class Compile {
     constructor(el, vm) {
-        this.$vm = vm
-        this.$el = this.isElementNode(el) ? el : document.querySelector(el)
+        this.$vm = vm;
+        this.$el = this.isElementNode(el) ? el : document.querySelector(el);
 
         if (this.$el) {
-            this.$fragment = this.node2Fragment(this.$el)
-            this.init()
-            this.$el.appendChild(this.$fragment)
+            this.$fragment = this.node2Fragment(this.$el);
+            this.init();
+            this.$el.appendChild(this.$fragment);
         }
-    }
-    init() {
-        this.compileElement(this.$fragment)
     }
     node2Fragment(el) { // 虚拟 dom
-        const fragment = document.createDocumentFragment()
-        let child = null
-        // 将原生节点拷贝到 fragment
+        var fragment = document.createDocumentFragment(),
+            child;
+
+        // 将原生节点拷贝到fragment
         while (child = el.firstChild) {
-            fragment.appendChild(child)
+            fragment.appendChild(child);
         }
-        return fragment
+
+        return fragment;
     }
+
+    init() {
+        this.compileElement(this.$fragment);
+    }
+
     // 便利所有节点及其子节点，进行扫描解析编译，调用对应指令渲染，并调用对应指令更新函数进行绑定
     compileElement(el) {
-        const childNodes = el.childNodes
-        Array.prototype.slice.call(childNodes).forEach(node => {
-            const [text, reg] = [node.textContent, /\{\{(.*)\}\}/]
+        var childNodes = el.childNodes,
+            me = this;
+
+        [].slice.call(childNodes).forEach(function (node) {
+            var text = node.textContent;
+            var reg = /\{\{(.*)\}\}/;
             // 按元素节点方式编译
-            if (this.isElementNode(node)) {
-                this.compile(node)
-            } else if (this.isTextNode(node), reg.test(text)) {
-                this.compileText(node, RegExp.$1)
+            if (me.isElementNode(node)) {
+                me.compile(node);
+
+            } else if (me.isTextNode(node) && reg.test(text)) {
+                me.compileText(node, RegExp.$1.trim());
             }
             // 遍历编译子节点
             if (node.childNodes && node.childNodes.length) {
-                this.compileElement(node)
+                me.compileElement(node);
             }
-        })
+        });
     }
+
     compile(node) {
-        const nodeAttrs = node.attributes
-        Array.prototype.slice.call(nodeAttrs).forEach(attr => {
+        var nodeAttrs = node.attributes,
+            me = this;
+
+        [].slice.call(nodeAttrs).forEach(function (attr) {
+            var attrName = attr.name;
             // 规定：指令以 v-xxx 命名（v-text、v-html 等）
-            const attrName = attr.name
-            if (this.isDirective(attrName)) {
-                const [exp, dir] = [attr.value, attrName.substring(2)]
-                if (this.isEventDirective(dir)) {
+            if (me.isDirective(attrName)) {
+                var exp = attr.value;
+                var dir = attrName.substring(2);
+                if (me.isEventDirective(dir)) {
                     // 事件指令，如 v-on:click
-                    compileUtil.eventHandler(node, this.$vm, exp, dir)
+                    compileUtil.eventHandler(node, me.$vm, exp, dir);
                 } else {
                     // 普通指令
-                    compileUtil[dir] && compileUtil[dir](node, this.$vm, exp)
+                    compileUtil[dir] && compileUtil[dir](node, me.$vm, exp);
                 }
 
-                node.removeAttribute(attrName)
+                node.removeAttribute(attrName);
             }
-        })
+        });
     }
+
     compileText(node, exp) {
         compileUtil.text(node, this.$vm, exp);
     }
+
     isDirective(attr) {
         return attr.indexOf('v-') == 0;
     }
+
     isEventDirective(dir) {
         return dir.indexOf('on') === 0;
     }
+
     isElementNode(node) {
         return node.nodeType == 1;
     }
+
     isTextNode(node) {
         return node.nodeType == 3;
     }
