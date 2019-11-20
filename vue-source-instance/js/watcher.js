@@ -54,11 +54,10 @@ class Watcher {
     }
     get() {
         Dep.target = this; // 将当前订阅者指向自己
-        var value = this.getter.call(this.vm, this.vm);
+        var value = this.getter.call(this.vm, this.vm); // 为 getter 传入自身的 obj，从而获取值
         Dep.target = null; // 添加完毕，重置
         return value;
     }
-
     parseGetter(exp) {
         if (/[^\w.$]/.test(exp)) return;
 

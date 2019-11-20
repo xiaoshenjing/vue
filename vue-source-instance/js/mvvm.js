@@ -16,15 +16,19 @@ class MVVM {
 
         this._initComputed();
 
+        // 对所有对象启动监听
         observe(data, this);
 
+        // 启动编译
         this.$compile = new Compile(options.el || document.body, this)
     }
-    
+
+    // 监听需要用到的值
     $watch(key, cb, options) {
         new Watcher(this, key, cb);
     }
 
+    // 代理 this 中的 data
     _proxyData(key, setter, getter) {
         var me = this;
         setter = setter ||
@@ -40,6 +44,7 @@ class MVVM {
             });
     }
 
+    // 代理 this 中的 computed
     _initComputed() {
         var me = this;
         var computed = this.$options.computed;

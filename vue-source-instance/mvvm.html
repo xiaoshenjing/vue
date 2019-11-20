@@ -48,8 +48,11 @@
                 }
             }
         });
-        vm.$watch('child.someStr', (...args) => {
-            console.log(args);
+        vm.$watch('child.someStr', (newVal, oldVal) => {
+            console.log({ newVal, oldVal });
+        });
+        vm.$watch('someStr', (newVal, oldVal) => {
+            console.log({ newVal, oldVal });
         });
     </script>
 </body>
