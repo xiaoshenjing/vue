@@ -63,7 +63,7 @@ class Dep {
         this.subs.push(sub);
     }
     depend() {
-        // Dep.target 的 this 指向 Watcher
+        // 此时 Dep.target 指向 Watcher 的 this
         Dep.target.addDep(this);
     }
     removeSub(sub) { // 移除订阅
