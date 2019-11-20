@@ -17,7 +17,7 @@ class MVVM {
         this._initComputed();
 
         // 对所有对象启动监听
-        observe(data, this);
+        observe(data, this); // new Observer
 
         // 启动编译
         this.$compile = new Compile(options.el || document.body, this)
