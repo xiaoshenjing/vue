@@ -11,7 +11,9 @@
 <body>
     <div id="app">
         <div>{{msg}}</div>
+        <div>{{cool}}</div>
         <div v-if='flag'>world</div>
+        <div v-for='(v,i) in list' :key='i'>{{v}}</div>
     </div>
 
     <script src="./vue.js"></script>
@@ -21,9 +23,20 @@
             data: {
                 msg: 'hello',
                 flag: false,
+                list: [1]
             },
-            created() {
-                setInterval(() => { this.flag = !this.flag }, 1000)
+            computed: {
+                cool() {
+                    return `i said ${this.msg} ${this.flag ? 'boy' : 'girl'}`
+                }
+            },
+            mounted() {
+                setTimeout(() => {
+                    this.list.push(1)
+                }, 2000);
+                setInterval(() => {
+                    this.flag = !this.flag
+                }, 3000)
             }
         })
     </script>

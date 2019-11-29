@@ -557,6 +557,7 @@
   // can we use __proto__?
   var hasProto = '__proto__' in {};
 
+  // 设备判断 ✳
   // Browser environment sniffing
   var inBrowser = typeof window !== 'undefined';
   var inWeex = typeof WXEnvironment !== 'undefined' && !!WXEnvironment.platform;
@@ -575,6 +576,7 @@
   var nativeWatch = ({}).watch;
 
   var supportsPassive = false;
+  // 浏览器端
   if (inBrowser) {
     try {
       var opts = {};
@@ -590,6 +592,7 @@
 
   // this needs to be lazy-evaled because vue may be required before
   // vue-server-renderer can set VUE_ENV
+  // 服务器端
   var _isServer;
   var isServerRendering = function () {
     if (_isServer === undefined) {
@@ -608,17 +611,22 @@
   // detect devtools
   var devtools = inBrowser && window.__VUE_DEVTOOLS_GLOBAL_HOOK__;
 
-  /* istanbul ignore next */
+  /**
+   * console.log(isNative(Array.prototype.toString)) // true
+   * console.log(isNative(function () { })) // false
+   * istanbul ignore next，判断是否为 js 的原生方法
+   */
   function isNative(Ctor) {
     return typeof Ctor === 'function' && /native code/.test(Ctor.toString())
   }
 
+  // 是否有 Symbol
   var hasSymbol =
     typeof Symbol !== 'undefined' && isNative(Symbol) &&
     typeof Reflect !== 'undefined' && isNative(Reflect.ownKeys);
 
+  /* istanbul ignore if，兼容 Set */ // $flow-disable-line
   var _Set;
-  /* istanbul ignore if */ // $flow-disable-line
   if (typeof Set !== 'undefined' && isNative(Set)) {
     // use native Set when available.
     _Set = Set;
@@ -642,7 +650,7 @@
     }());
   }
 
-  /*  */
+  /* 通过 flow 检查 */
 
   var warn = noop;
   var tip = noop;
@@ -650,7 +658,11 @@
   var formatComponentName = (noop);
 
   {
-    var hasConsole = typeof console !== 'undefined';
+    var hasConsole = typeof console !== 'undefined'; // 是否存在 console
+    /**
+     * 转为驼峰式
+     * console.log(classify('hello-world_cool')) // HelloWorldCool
+     */
     var classifyRE = /(?:^|[-_])(\w)/g;
     var classify = function (str) {
       return str
@@ -658,6 +670,7 @@
         .replace(/[-_]/g, '');
     };
 
+    // 错误警告
     warn = function (msg, vm) {
       var trace = vm ? generateComponentTrace(vm) : '';
 
@@ -668,6 +681,7 @@
       }
     };
 
+    // 错误提示
     tip = function (msg, vm) {
       if (hasConsole && (!config.silent)) {
         console.warn("[Vue tip]: " + msg + (
@@ -698,6 +712,8 @@
       )
     };
 
+    // 复制
+    // console.log(repeat('hello ', 4)) // hello hello hello hello
     var repeat = function (str, n) {
       var res = '';
       while (n) {
@@ -708,6 +724,7 @@
       return res
     };
 
+    // 生成错误时的组件路径
     generateComponentTrace = function (vm) {
       if (vm._isVue && vm.$parent) {
         var tree = [];
@@ -740,33 +757,36 @@
     };
   }
 
-  /*  */
-
-  var uid = 0;
-
   /**
+   * dep 是可观察的，拥有多个指定它的指令
    * A dep is an observable that can have multiple
    * directives subscribing to it.
    */
+  var uid = 0;
   var Dep = function Dep() {
     this.id = uid++;
     this.subs = [];
   };
 
+  // 添加订阅者
   Dep.prototype.addSub = function addSub(sub) {
     this.subs.push(sub);
   };
 
+  // 移除订阅者
   Dep.prototype.removeSub = function removeSub(sub) {
     remove(this.subs, sub);
   };
 
+  // 向 Observe 添加 get 依赖
   Dep.prototype.depend = function depend() {
     if (Dep.target) {
+      // 此时 Dep.target 指向 Watcher 的 this
       Dep.target.addDep(this);
     }
   };
 
+  // 当值改变触发 Observe 中的 set 进而触发 notify，去通知 Watcher
   Dep.prototype.notify = function notify() {
     // stabilize the subscriber list first
     var subs = this.subs.slice();
@@ -797,7 +817,7 @@
     Dep.target = targetStack[targetStack.length - 1];
   }
 
-  /*  */
+  /* 节点对象 */
 
   var VNode = function VNode(
     tag,
@@ -836,7 +856,7 @@
 
   var prototypeAccessors = { child: { configurable: true } };
 
-  // DEPRECATED: alias for componentInstance for backwards compat.
+  // DEPRECATED(不推荐使用): alias for componentInstance for backwards compat.
   /* istanbul ignore next */
   prototypeAccessors.child.get = function () {
     return this.componentInstance
@@ -892,6 +912,7 @@
    * dynamically accessing methods on Array prototype
    */
 
+  // 方法重写以弥补 defineProperty 的缺点
   var arrayProto = Array.prototype;
   var arrayMethods = Object.create(arrayProto);
 
@@ -911,6 +932,7 @@
   methodsToPatch.forEach(function (method) {
     // cache original method
     var original = arrayProto[method];
+    // 将方法绑定到 arrayMethods
     def(arrayMethods, method, function mutator() {
       var args = [], len = arguments.length;
       while (len--) args[len] = arguments[len];
@@ -927,6 +949,7 @@
           inserted = args.slice(2);
           break
       }
+      console.log(this)
       if (inserted) { ob.observeArray(inserted); }
       // notify change
       ob.dep.notify();
