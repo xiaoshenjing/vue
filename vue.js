@@ -9,7 +9,10 @@
       (global = global || self, global.Vue = factory());
 }(this, function () {
   'use strict';
-  // 无法修改的冻结空对象
+  /**
+   * 類型檢查
+   */
+  // 冻结空对象
   var emptyObject = Object.freeze({});
 
   // 判断是空
