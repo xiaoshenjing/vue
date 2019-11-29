@@ -9,9 +9,6 @@
       (global = global || self, global.Vue = factory());
 }(this, function () {
   'use strict';
-  /**
-   * 類型檢查
-   */
   // 冻结空对象
   var emptyObject = Object.freeze({});
 
@@ -77,6 +74,7 @@
     return n >= 0 && Math.floor(n) === n && isFinite(val)
   }
 
+  // 判断 promise
   function isPromise(val) {
     return (
       isDef(val) &&
@@ -86,6 +84,7 @@
   }
 
   /**
+   * 转为 String
    * Convert a value to a string that is actually rendered.
    */
   function toString(val) {
@@ -97,6 +96,7 @@
   }
 
   /**
+   * 转为 Number
    * Convert an input value to a number for persistence.
    * If the conversion fails, return original string.
    */
@@ -106,6 +106,11 @@
   }
 
   /**
+   * 检查逗号分隔字符串是否包含某个 key
+   * let map = makeMap('name,age', true)
+   * console.log(map('Name')); // true
+   * console.log(map('name')); // true
+   * console.log(map('hobby')); // undefined
    * Make a map and return a function for checking if a key
    * is in that map.
    */
@@ -124,6 +129,7 @@
   }
 
   /**
+   * 检查是否组件插槽
    * Check if a tag is a built-in tag.
    */
   var isBuiltInTag = makeMap('slot,component', true);
@@ -134,6 +140,7 @@
   var isReservedAttribute = makeMap('key,ref,slot,slot-scope,is');
 
   /**
+   * 从数组中移除某项 ✳
    * Remove an item from an array.
    */
   function remove(arr, item) {
@@ -146,6 +153,7 @@
   }
 
   /**
+   * 检查对象是否包含某 key
    * Check whether an object has the property.
    */
   var hasOwnProperty = Object.prototype.hasOwnProperty;
@@ -154,6 +162,10 @@
   }
 
   /**
+   * 为 pure 添加 version 并 return pure
+   * const fn = (str) => `fn：${str}`
+   * const pure = cached(fn)('fun')
+   * console.log(pure) // fn：fun
    * Create a cached version of a pure function.
    */
   function cached(fn) {
@@ -165,6 +177,8 @@
   }
 
   /**
+   * 转为驼峰式
+   * console.log(camelize('hello-world')) // helloWorld
    * Camelize a hyphen-delimited string.
    */
   var camelizeRE = /-(\w)/g;
@@ -173,6 +187,7 @@
   });
 
   /**
+   * 首字母大写
    * Capitalize a string.
    */
   var capitalize = cached(function (str) {
@@ -180,6 +195,8 @@
   });
 
   /**
+   * 转为短 - 连接
+   * console.log(hyphenate('helloWorld')) // hello-world
    * Hyphenate a camelCase string.
    */
   var hyphenateRE = /\B([A-Z])/g;
@@ -195,10 +212,15 @@
    * PhantomJS 1.x, so this must be kept for backward compatibility.
    */
 
-  /* istanbul ignore next */
+  /* istanbul ignore next， 重写 bind */
   function polyfillBind(fn, ctx) {
     function boundFn(a) {
       var l = arguments.length;
+      /**
+       * 如果参数不存在，直接绑定作用域调用该函数fn.call(ctx)
+       * 如果存在且只有一个，那么调用fn.call(ctx, a), a是入参
+       * 如果存在且不止一个，那么调用fn.apply(ctx, arguments)
+       */
       return l
         ? l > 1
           ? fn.apply(ctx, arguments)
@@ -219,6 +241,10 @@
     : polyfillBind;
 
   /**
+   * 伪数组转真数组
+   * let list = { 0: 'bob', 1: 'tom', length: 2 }
+   * console.log(toArray(list)) // ['bob', 'tom']
+   * console.log(toArray(list, 1)) // ['tom']
    * Convert an Array-like object to a real Array.
    */
   function toArray(list, start) {
@@ -232,6 +258,7 @@
   }
 
   /**
+   * 混入对象
    * Mix properties into target object.
    */
   function extend(to, _from) {
@@ -242,6 +269,8 @@
   }
 
   /**
+   * 提取数组中的对象并合并
+   * console.log(toObject([{ a: '1', b: 2 }, { c: 'hello' }, 3, 4, 5])) // { a: '1', b: 2, c: 'hello' }
    * Merge an Array of Objects into a single Object.
    */
   function toObject(arr) {
@@ -257,6 +286,7 @@
   /* eslint-disable no-unused-vars */
 
   /**
+   * 用于报错警告信息提示
    * Perform no operation.
    * Stubbing args to make Flow happy without leaving useless transpiled code
    * with ...rest (https://flow.org/blog/2017/05/07/Strict-Function-Call-Arity/).
@@ -285,6 +315,7 @@
   }
 
   /**
+   * 判断两个值是否相等（loose）✳
    * Check if two values are loosely equal - that is,
    * if they are plain objects, do they have the same shape?
    */
@@ -324,6 +355,7 @@
   }
 
   /**
+   * 查找数组中某值的索引（loose，区别 indexOf 是可以查找对象）
    * Return the first index at which a loosely equal value can be
    * found in the array (if value is a plain object, the array must
    * contain an object of the same shape), or -1 if it is not present.
@@ -336,6 +368,7 @@
   }
 
   /**
+   * 确保一个函数只被 call 一次
    * Ensure a function is called only once.
    */
   function once(fn) {
@@ -348,6 +381,7 @@
     }
   }
 
+  /* enums */
   var SSR_ATTR = 'data-server-rendered';
 
   var ASSET_TYPES = [
@@ -370,10 +404,6 @@
     'errorCaptured',
     'serverPrefetch'
   ];
-
-  /*  */
-
-
 
   var config = ({
     /**
@@ -479,6 +509,7 @@
   var unicodeRegExp = /a-zA-Z\u00B7\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u037D\u037F-\u1FFF\u200C-\u200D\u203F-\u2040\u2070-\u218F\u2C00-\u2FEF\u3001-\uD7FF\uF900-\uFDCF\uFDF0-\uFFFD/;
 
   /**
+   * 判断一个字符串开始于 $ 或 _
    * Check if a string starts with $ or _
    */
   function isReserved(str) {
@@ -487,6 +518,11 @@
   }
 
   /**
+   * 定义一个属性
+   * const obj = {}
+   * def(obj, 'name', 'bob', true)
+   * console.log(obj.name) // bob
+   * for (let i in obj) { console.log(i) } // name
    * Define a property.
    */
   function def(obj, key, val, enumerable) {
