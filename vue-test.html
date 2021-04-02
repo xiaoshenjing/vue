@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <input type="text" id="username">
+    <span id="uName"></span>
+
+    <script>
+        const obj = {}
+        // 注意不能同时设置 (writable，value) 和 get、set方法
+        Object.defineProperty(obj, 'username', {
+            // writable: true, // 写入
+            enumerable: true, // 可枚举（循环）
+            configurable: false, // 不能再define
+            // 使用 defineProperty 中的 get 来双向绑定数据
+            set(v) {
+                document.getElementById('uName').innerText = v;
+                document.getElementById('username').value = v;
+            },
+            get() {
+                console.log('get')
+            }
+        })
+        document.getElementById('username').addEventListener('keyup', function (e) {
+            obj.username = e.target.value
+        })
+    </script>
+</body>
+
+</html>
