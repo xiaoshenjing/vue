@@ -7,12 +7,19 @@
 class MVVM {
     constructor(options) {
         this.$options = options || {};
-        var data = this._data = this.$options.data;
-        console.log(this);
+        const data = this._data = this.$options.data;
+        const vm = this;
         // 属性代理，实现 vm.xxx -> vm._data.xxx
         Object.keys(data).forEach(function (key) {
             vm._proxyData(key);
         });
+
+        // 初始化计算监听
+        this._initComputed();
+
+        // 监听 data
+        observe(data, this)
+
         // 启动编译
         this.$compile = new Compile(options.el || document.body, this)
     }
@@ -24,7 +31,7 @@ class MVVM {
 
     // 代理 this 中的 data
     _proxyData(key, setter, getter) {
-        var vm = this;
+        const vm = this;
         setter = setter ||
             Object.defineProperty(vm, key, {
                 configurable: false,
@@ -40,8 +47,8 @@ class MVVM {
 
     // 代理 this 中的 computed，通过这里动态通知数据更新
     _initComputed() {
-        var vm = this;
-        var computed = this.$options.computed;
+        const vm = this;
+        const computed = this.$options.computed;
         if (typeof computed === 'object') {
             Object.keys(computed).forEach(function (key) {
                 Object.defineProperty(vm, key, {
