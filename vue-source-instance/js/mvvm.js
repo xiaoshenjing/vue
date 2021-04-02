@@ -8,18 +8,11 @@ class MVVM {
     constructor(options) {
         this.$options = options || {};
         var data = this._data = this.$options.data;
-        var vm = this;
         console.log(this);
         // 属性代理，实现 vm.xxx -> vm._data.xxx
         Object.keys(data).forEach(function (key) {
             vm._proxyData(key);
         });
-
-        this._initComputed();
-
-        // 对所有对象启动监听
-        observe(data, this); // new Observer
-
         // 启动编译
         this.$compile = new Compile(options.el || document.body, this)
     }
